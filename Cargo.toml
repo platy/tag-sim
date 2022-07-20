@@ -5,3 +5,5 @@ edition = "2021"
 authors = ["Mike Bush <platy@njk.onl>"]
 
 [dependencies]
+rand = "*"
+euclid = "*"
