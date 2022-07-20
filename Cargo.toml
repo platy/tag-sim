@@ -1,0 +1,7 @@
+[package]
+name = "tag-simulation"
+version = "0.1.0"
+edition = "2021"
+authors = ["Mike Bush <platy@njk.onl>"]
+
+[dependencies]
