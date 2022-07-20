@@ -1,5 +1,6 @@
 use euclid::default::Vector2D;
 
+pub type PlayArea = euclid::default::Rect<PlayerDistance>;
 pub type Position = euclid::default::Point2D<f32>;
 pub type PlayerDistance = f32;
 pub type PlayerId = usize;
@@ -38,7 +39,7 @@ impl From<TagStatus> for Option<PlayerId> {
 }
 
 impl TagPlayerVisibleState {
-    fn is_it(&self) -> bool {
+    pub fn is_it(&self) -> bool {
         self.status.is_it()
     }
 }
@@ -47,16 +48,13 @@ impl TagPlayerVisibleState {
 #[derive(Debug)]
 pub struct TagEnvironment {
     /// The game should be limited to this area
-    area: euclid::default::Rect<PlayerDistance>,
+    area: PlayArea,
     /// Visible state about all the players
     player_state: Vec<TagPlayerVisibleState>,
 }
 
 impl TagEnvironment {
-    pub fn new(
-        area: euclid::default::Rect<PlayerDistance>,
-        player_state: Vec<TagPlayerVisibleState>,
-    ) -> Self {
+    pub fn new(area: PlayArea, player_state: Vec<TagPlayerVisibleState>) -> Self {
         Self { area, player_state }
     }
 
@@ -98,21 +96,22 @@ impl TagEnvironment {
     }
 
     /// Apply an action for each player to mutate the environment
-    pub fn apply_actions(&mut self, actions: Vec<TagPlayerAction>) {
+    pub fn apply_actions(&mut self, actions: &[TagPlayerAction]) {
         assert!(
             self.player_state.len() == actions.len(),
             "Must apply one action for each player known to the environment"
         );
-        for (idx, action) in actions.into_iter().enumerate() {
+        for (idx, action) in actions.iter().enumerate() {
             self.apply_action(idx, action)
         }
     }
 
-    fn apply_action(&mut self, player_id: PlayerId, action: TagPlayerAction) {
+    fn apply_action(&mut self, player_id: PlayerId, action: &TagPlayerAction) {
         match action {
             TagPlayerAction::Run { stretch } => {
+                assert!(stretch.is_finite());
                 let point2_d = &mut self.player_state[player_id].position;
-                *point2_d += stretch;
+                *point2_d += *stretch;
                 if point2_d.x < self.area.min_x() {
                     point2_d.x = self.area.min_x();
                 }
@@ -136,11 +135,19 @@ impl TagEnvironment {
                     player_id
                 );
                 self.player_state[player_id].status = TagStatus::NotIt;
-                self.player_state[other_player_id].status = TagStatus::It {
+                self.player_state[*other_player_id].status = TagStatus::It {
                     tagged_by: player_id,
                 };
             }
         }
+    }
+
+    pub fn player_state(&self) -> &[TagPlayerVisibleState] {
+        &self.player_state
+    }
+
+    pub fn area(&self) -> PlayArea {
+        self.area
     }
 }
 
@@ -177,7 +184,7 @@ mod test {
         assert_eq!(e.get_state(1).position, (1., 1.).into());
         e.apply_action(
             1,
-            TagPlayerAction::Run {
+            &TagPlayerAction::Run {
                 stretch: (10., 10.).into(),
             },
         );
@@ -185,7 +192,7 @@ mod test {
         assert_eq!(e.get_state(1).position, (11., 11.).into());
         e.apply_action(
             0,
-            TagPlayerAction::Run {
+            &TagPlayerAction::Run {
                 stretch: (20., 20.).into(),
             },
         );
@@ -205,7 +212,7 @@ mod test {
         assert_eq!(e.get_state(0).position, (95., 0.).into());
         e.apply_action(
             0,
-            TagPlayerAction::Run {
+            &TagPlayerAction::Run {
                 stretch: (10., 10.).into(),
             },
         );
@@ -229,7 +236,7 @@ mod test {
         };
         assert!(!e.get_state(0).is_it());
         assert!(e.get_state(1).is_it());
-        e.apply_action(1, TagPlayerAction::Tag { player_id: 0 });
+        e.apply_action(1, &TagPlayerAction::Tag { player_id: 0 });
         assert!(e.get_state(0).is_it());
         assert!(!e.get_state(1).is_it());
     }
