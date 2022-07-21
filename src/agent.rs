@@ -55,10 +55,6 @@ impl TagPlayerAgent {
     }
 }
 
-fn error_string(err: impl Into<String>) -> impl FnOnce() -> Box<dyn std::error::Error> {
-    move || From::from(err.into())
-}
-
 /// keeps the player running at full speed by turning them along the edge of the play area
 fn turn_at_edges(area: &PlayArea, from: Position, stretch: RunStretch) -> RunStretch {
     let target = from + stretch;

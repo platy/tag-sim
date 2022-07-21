@@ -8,7 +8,7 @@ use crate::{
 /// Render the current state of the simulation and the actions to the canvas
 pub fn render_frame<const WIDTH: usize, const HEIGHT: usize>(
     simulation: &Simulation,
-    actions: Vec<TagPlayerAction>,
+    actions: &[TagPlayerAction],
     canvas: &mut TagCanvas<WIDTH, HEIGHT>,
 ) {
     for (player, action) in simulation.player_state().iter().zip(actions) {

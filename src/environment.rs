@@ -60,8 +60,16 @@ pub struct TagEnvironment {
 
 impl TagEnvironment {
     pub fn new(area: PlayArea, player_state: Vec<TagPlayerVisibleState>) -> Self {
-        let it_id = player_state.iter().enumerate().find_map(|(i, s)| s.is_it().then_some(i)).expect("Expecting one player is it");
-        Self { area, player_state, it_id }
+        let it_id = player_state
+            .iter()
+            .enumerate()
+            .find_map(|(i, s)| s.is_it().then_some(i))
+            .expect("Expecting one player is it");
+        Self {
+            area,
+            player_state,
+            it_id,
+        }
     }
 
     /// Get state of one of the players
@@ -134,7 +142,7 @@ impl TagEnvironment {
             TagPlayerAction::Tag {
                 player_id: other_player_id,
             } => {
-                println!("{}: TAG {}", player_id, other_player_id);
+                // println!("{}: TAG {}", player_id, other_player_id);
                 assert!(
                     self.player_state[player_id].is_it(),
                     "Player ({}) can't tag if they're not it",
@@ -162,6 +170,7 @@ impl TagEnvironment {
 }
 
 /// Action each player agent can choose to take after each step
+#[derive(Debug)]
 pub enum TagPlayerAction {
     /// Player can run a stretch
     Run { stretch: Vector2D<PlayerDistance> },

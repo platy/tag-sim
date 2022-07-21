@@ -47,7 +47,8 @@ fn main() {
 
     let mut canvas;
     for _step in 0..step_limit {
-        let actions = simulation.step().expect("Simulation failed");
+        simulation.step().expect("Simulation failed");
+        let actions = simulation.actions();
         canvas = TagCanvas::<25, 25>::new(simulation.environment().area());
         render_frame(&simulation, actions, &mut canvas);
         println!("{}", canvas);
