@@ -1,4 +1,4 @@
-use std::{iter, thread, time::Duration, env};
+use std::{env, iter, thread, time::Duration};
 
 use agent::TagPlayerAgent;
 use environment::{PlayArea, TagPlayerVisibleState, TagStatus};
@@ -14,8 +14,20 @@ mod simulation;
 mod viewer;
 
 fn main() {
-    let player_count: usize = env::args().nth(1).map(|s| s.parse().unwrap()).unwrap_or(5);
-    let step_limit: usize = env::args().nth(2).map(|s| s.parse().unwrap()).unwrap_or(100);
+    let player_count: usize = env::args()
+        .nth(1)
+        .map(|s| {
+            s.parse()
+                .expect("parameters are [player_count [step_limit]]")
+        })
+        .unwrap_or(5);
+    let step_limit: usize = env::args()
+        .nth(2)
+        .map(|s| {
+            s.parse()
+                .expect("parameters are [player_count [step_limit]]")
+        })
+        .unwrap_or(100);
 
     let mut rng = rand::rngs::StdRng::seed_from_u64(0);
     let area = Rect::from_points(&[(0., 0.).into(), (100., 100.).into()]);
@@ -35,7 +47,7 @@ fn main() {
 
     let mut canvas;
     for _step in 0..step_limit {
-        let actions = simulation.step();
+        let actions = simulation.step().expect("Simulation failed");
         canvas = TagCanvas::<25, 25>::new(simulation.environment().area());
         render_frame(&simulation, actions, &mut canvas);
         println!("{}", canvas);

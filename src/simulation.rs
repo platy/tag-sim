@@ -1,7 +1,4 @@
-use crate::{
-    agent::TagPlayerAgent,
-    environment::{PlayArea, TagEnvironment, TagPlayerAction, TagPlayerVisibleState},
-};
+use crate::{agent::TagPlayerAgent, environment::*};
 
 /// Simulation runner
 #[derive(Debug)]
@@ -30,17 +27,17 @@ impl Simulation {
     /// 1. Ask each agent to choose it's action based on the current environment
     /// 2. Apply the actions to the environment
     /// 3. Increment step counter
-    pub fn step(&mut self) -> Vec<TagPlayerAction> {
+    pub fn step(&mut self) -> Result<Vec<TagPlayerAction>> {
         let actions: Vec<_> = self
             .agents
             .iter_mut()
             .enumerate()
             .map(|(player_id, agent)| agent.act(player_id, &self.environment))
-            .collect();
+            .collect::<Result<_>>()?;
 
         self.environment.apply_actions(&actions);
         self.step += 1;
-        actions
+        Ok(actions)
     }
 
     pub fn player_state(&self) -> &[TagPlayerVisibleState] {

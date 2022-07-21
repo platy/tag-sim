@@ -1,9 +1,12 @@
+use std::error::Error;
+
 use euclid::default::Vector2D;
 
 pub type PlayArea = euclid::default::Rect<PlayerDistance>;
 pub type Position = euclid::default::Point2D<f32>;
 pub type PlayerDistance = f32;
 pub type PlayerId = usize;
+pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// The state about each player which is visible through the environment to the other players
 #[derive(Debug)]
@@ -68,7 +71,7 @@ impl TagEnvironment {
         &self,
         player_id: PlayerId,
         ignore: Option<PlayerId>,
-    ) -> (PlayerId, PlayerDistance) {
+    ) -> Result<(PlayerId, PlayerDistance)> {
         let mut closest_player = None;
         let my_position = self.get_state(player_id).position;
 
@@ -92,7 +95,7 @@ impl TagEnvironment {
                 closest_player = Some((i, square_distance))
             }
         }
-        closest_player.expect("Closest player with less than 2 players")
+        closest_player.ok_or_else(|| "Closest player with less than 2 players".into())
     }
 
     /// Apply an action for each player to mutate the environment
@@ -242,7 +245,7 @@ mod test {
     }
 
     #[test]
-    fn test_closest_player() {
+    fn test_closest_player() -> Result<()> {
         let e = TagEnvironment {
             area: Rect::from_points(&[(0., 0.).into(), (100., 100.).into()]),
             player_state: vec![
@@ -260,11 +263,13 @@ mod test {
                 },
             ],
         };
-        assert_eq!(e.closest_player_except(0, None).0, 1);
-        assert_eq!(e.closest_player_except(1, None).0, 0);
-        assert_eq!(e.closest_player_except(2, None).0, 1);
-        assert_eq!(e.closest_player_except(0, Some(1)).0, 2);
-        assert_eq!(e.closest_player_except(1, Some(0)).0, 2);
-        assert_eq!(e.closest_player_except(2, Some(1)).0, 0);
+        assert_eq!(e.closest_player_except(0, None)?.0, 1);
+        assert_eq!(e.closest_player_except(1, None)?.0, 0);
+        assert_eq!(e.closest_player_except(2, None)?.0, 1);
+        assert_eq!(e.closest_player_except(0, Some(1))?.0, 2);
+        assert_eq!(e.closest_player_except(1, Some(0))?.0, 2);
+        assert_eq!(e.closest_player_except(2, Some(1))?.0, 0);
+
+        Ok(())
     }
 }

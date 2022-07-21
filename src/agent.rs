@@ -13,15 +13,19 @@ pub struct TagPlayerAgent;
 
 impl TagPlayerAgent {
     /// Decide what action to take on this step based on looking at the environment
-    pub fn act(&mut self, player_id: usize, environment: &TagEnvironment) -> TagPlayerAction {
+    pub fn act(
+        &mut self,
+        player_id: usize,
+        environment: &TagEnvironment,
+    ) -> Result<TagPlayerAction> {
         let TagPlayerVisibleState {
             position,
             status: tagged_by,
         } = environment.get_state(player_id);
 
         let (closest_player, sq_distance) =
-            environment.closest_player_except(player_id, (*tagged_by).into());
-        if tagged_by.is_it() {
+            environment.closest_player_except(player_id, (*tagged_by).into())?;
+        let action = if tagged_by.is_it() {
             if sq_distance < ARM_LENGTH * ARM_LENGTH {
                 TagPlayerAction::Tag {
                     player_id: closest_player,
@@ -40,6 +44,7 @@ impl TagPlayerAgent {
             }
             let stretch = -Vector2D::from_angle_and_length(angle, MAX_SPEED);
             TagPlayerAction::Run { stretch }
-        }
+        };
+        Ok(action)
     }
 }
