@@ -37,7 +37,12 @@ impl TagPlayerAgent {
                 }
             }
         } else {
-            let vector = environment.get_state(closest_player).position - *position;
+            let it = &environment
+                .player_state()
+                .into_iter()
+                .find(|s| s.is_it())
+                .ok_or_else(error_string("No player is it"))?;
+            let vector = it.position - *position;
             let mut angle = vector.angle_from_x_axis();
             if !angle.is_finite() {
                 angle = Angle::radians(0.);
@@ -47,4 +52,8 @@ impl TagPlayerAgent {
         };
         Ok(action)
     }
+}
+
+fn error_string(err: impl Into<String>) -> impl FnOnce() -> Box<dyn std::error::Error> {
+    move || From::from(err.into())
 }
