@@ -24,9 +24,9 @@ impl TagPlayerAgent {
             status: tagged_by,
         } = environment.get_state(player_id);
 
-        let (closest_player, sq_distance) =
-            environment.closest_player_except(player_id, (*tagged_by).into())?;
         let action = if tagged_by.is_it() {
+            let (closest_player, sq_distance) =
+                environment.closest_player_except(player_id, (*tagged_by).into())?;
             if sq_distance < ARM_LENGTH * ARM_LENGTH {
                 TagPlayerAction::Tag {
                     player_id: closest_player,
@@ -41,11 +41,7 @@ impl TagPlayerAgent {
                 }
             }
         } else {
-            let it = &environment
-                .player_state()
-                .iter()
-                .find(|s| s.is_it())
-                .ok_or_else(error_string("No player is it"))?;
+            let it = environment.get_it();
             let vector = it.position - *position;
             let mut angle = vector.angle_from_x_axis();
             if !angle.is_finite() {

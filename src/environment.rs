@@ -54,11 +54,14 @@ pub struct TagEnvironment {
     area: PlayArea,
     /// Visible state about all the players
     player_state: Vec<TagPlayerVisibleState>,
+    /// Who is currently it
+    it_id: PlayerId,
 }
 
 impl TagEnvironment {
     pub fn new(area: PlayArea, player_state: Vec<TagPlayerVisibleState>) -> Self {
-        Self { area, player_state }
+        let it_id = player_state.iter().enumerate().find_map(|(i, s)| s.is_it().then_some(i)).expect("Expecting one player is it");
+        Self { area, player_state, it_id }
     }
 
     /// Get state of one of the players
@@ -152,6 +155,10 @@ impl TagEnvironment {
     pub fn area(&self) -> PlayArea {
         self.area
     }
+
+    pub fn get_it(&self) -> &TagPlayerVisibleState {
+        &self.player_state[self.it_id]
+    }
 }
 
 /// Action each player agent can choose to take after each step
@@ -182,6 +189,7 @@ mod test {
                     status: TagStatus::It { tagged_by: 1 },
                 },
             ],
+            it_id: 1,
         };
         assert_eq!(e.get_state(0).position, (0., 0.).into());
         assert_eq!(e.get_state(1).position, (1., 1.).into());
@@ -211,6 +219,7 @@ mod test {
                 position: (95., 0.).into(),
                 status: TagStatus::NotIt,
             }],
+            it_id: 1,
         };
         assert_eq!(e.get_state(0).position, (95., 0.).into());
         e.apply_action(
@@ -236,6 +245,7 @@ mod test {
                     status: TagStatus::It { tagged_by: 1 },
                 },
             ],
+            it_id: 1,
         };
         assert!(!e.get_state(0).is_it());
         assert!(e.get_state(1).is_it());
@@ -262,6 +272,7 @@ mod test {
                     status: TagStatus::It { tagged_by: 2 },
                 },
             ],
+            it_id: 2,
         };
         assert_eq!(e.closest_player_except(0, None)?.0, 1);
         assert_eq!(e.closest_player_except(1, None)?.0, 0);
