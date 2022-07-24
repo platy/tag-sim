@@ -1,4 +1,5 @@
 use crate::{agent::TagPlayerAgent, environment::*};
+use rayon::prelude::*;
 
 /// Simulation runner
 #[derive(Debug)]
@@ -29,21 +30,19 @@ impl Simulation {
     /// 1. Ask each agent to choose it's action based on the current environment
     /// 2. Apply the actions to the environment
     /// 3. Increment step counter
-    pub fn step(&mut self) -> Result<()> {
-        self.actions.clear();
-
-        for action in self
-            .agents
-            .iter_mut()
+    pub fn step(&mut self) {
+        self.agents
+            .par_iter_mut()
             .enumerate()
-            .map(|(player_id, agent)| agent.act(player_id, &self.environment))
-        {
-            self.actions.push(action?);
-        }
+            .map(|(player_id, agent)| {
+                agent
+                    .act(player_id, &self.environment)
+                    .expect("Simulation cannot run when agent actions fail")
+            })
+            .collect_into_vec(&mut self.actions);
 
         self.environment.apply_actions(&self.actions);
         self.step += 1;
-        Ok(())
     }
 
     pub fn actions(&self) -> &[TagPlayerAction] {

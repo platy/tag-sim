@@ -47,9 +47,9 @@ fn main() {
 
     let mut canvas;
     for _step in 0..step_limit {
-        simulation.step().expect("Simulation failed");
+        simulation.step();
         let actions = simulation.actions();
-        canvas = TagCanvas::<25, 25>::new(simulation.environment().area());
+        canvas = TagCanvas::<170, 50>::new(simulation.environment().area());
         render_frame(&simulation, actions, &mut canvas);
         println!("{}", canvas);
         thread::sleep(Duration::from_millis(20));

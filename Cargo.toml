@@ -7,3 +7,4 @@ authors = ["Mike Bush <platy@njk.onl>"]
 [dependencies]
 rand = "*"
 euclid = "*"
+rayon = "*"
